@@ -30,7 +30,7 @@ app.use('/api/admin', require('./routes/admin.routes'));
 // Serve frontend static assets in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../frontend/dist')));
-  app.get('/*', (req, res) => {
+  app.get('/:any*', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
   });
 } else {
