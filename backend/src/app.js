@@ -6,7 +6,11 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 
-app.use(helmet());
+const path = require('path');
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : 'http://localhost:5173',
   credentials: true,
@@ -23,10 +27,18 @@ app.use('/api/tasks', require('./routes/task.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// Serve frontend static assets in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+  });
+} else {
+  // Health check only needed in dev since all routes go to index.html in prod
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+}
 
 // Error handler
 app.use((err, req, res, next) => {
